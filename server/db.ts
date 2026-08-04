@@ -61,9 +61,11 @@ class Database {
       return;
     }
 
-    // Ensure users array contains ONLY the single 'administrador' account if not already configured correctly
+    // Ensure admin user exists safely
     const adminUser = this.data.users.find(
-      (u) => u.name.toLowerCase() === 'administrador' || u.email.toLowerCase() === 'gonzalez.exe@mendoza.edu.ar'
+      (u) =>
+        (u.name && u.name.toLowerCase() === 'administrador') ||
+        (u.email && u.email.toLowerCase() === 'gonzalez.exe@mendoza.edu.ar')
     );
 
     if (!adminUser) {
@@ -84,9 +86,7 @@ class Database {
         this.filePath = targetPath;
         dir = '/tmp';
       }
-      const tmpPath = `${targetPath}.tmp`;
-      fs.writeFileSync(tmpPath, JSON.stringify(this.data, null, 2), 'utf-8');
-      fs.renameSync(tmpPath, targetPath);
+      fs.writeFileSync(targetPath, JSON.stringify(this.data, null, 2), 'utf-8');
     } catch (error) {
       console.error('Failed to save DB:', error);
     }
@@ -169,12 +169,13 @@ class Database {
     return this.data.users.map(({ passwordHash, resetToken, resetTokenExpiry, needsPasswordSetup, ...user }) => user);
   }
 
-  public getUserByEmail(emailOrUsername: string): UserWithPassword | undefined {
+  public getUserByEmail(emailOrUsername?: string): UserWithPassword | undefined {
+    if (!emailOrUsername || typeof emailOrUsername !== 'string') return undefined;
     const query = emailOrUsername.trim().toLowerCase();
     return this.data.users.find(
       (u) =>
-        u.email.toLowerCase() === query ||
-        u.name.toLowerCase() === query
+        (u.email && typeof u.email === 'string' && u.email.trim().toLowerCase() === query) ||
+        (u.name && typeof u.name === 'string' && u.name.trim().toLowerCase() === query)
     );
   }
 

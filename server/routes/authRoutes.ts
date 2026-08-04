@@ -55,7 +55,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 // Login
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       res.status(400).json({ error: 'Por favor ingresa usuario/correo y contraseña.' });
@@ -96,9 +96,9 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       token,
       user,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in /login:', error);
-    res.status(500).json({ error: 'Error interno en el inicio de sesión.' });
+    res.status(500).json({ error: error?.message || 'Error interno en el inicio de sesión.' });
   }
 });
 
@@ -130,9 +130,9 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
       demoMode: emailResult.demoMode,
       resetUrl: emailResult.demoMode ? emailResult.resetUrl : undefined,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in /forgot-password:', error);
-    res.status(500).json({ error: 'No se pudo procesar la solicitud de restablecimiento.' });
+    res.status(500).json({ error: error?.message || 'No se pudo procesar la solicitud de restablecimiento.' });
   }
 });
 

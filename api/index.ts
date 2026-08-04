@@ -8,11 +8,17 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Handle routes with both /api prefix and without /api prefix for Vercel Serverless Function rewrites
 app.use('/api/auth', authRoutes);
-app.use('/api/records', recordsRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/auth', authRoutes);
 
-app.get('/api/health', (_req, res) => {
+app.use('/api/records', recordsRoutes);
+app.use('/records', recordsRoutes);
+
+app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
+
+app.get(['/api/health', '/health'], (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
