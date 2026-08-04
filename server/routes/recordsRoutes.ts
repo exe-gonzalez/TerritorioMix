@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
-import { db } from '../db.ts';
-import { TIPOS_EDIFICACION_LIST, TipoEdificacion } from '../../src/types.ts';
-import { authenticateJWT, AuthenticatedRequest, requireAdmin } from '../authMiddleware.ts';
+import { db } from '../db';
+import { TIPOS_EDIFICACION_LIST, TipoEdificacion } from '../../src/types';
+import { authenticateJWT, AuthenticatedRequest, requireAdmin } from '../authMiddleware';
 
 const router = Router();
 

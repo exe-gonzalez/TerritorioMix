@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { CONFIG } from './config.ts';
+import { CONFIG } from './config';
 
 let transporter: nodemailer.Transporter | null = null;
 

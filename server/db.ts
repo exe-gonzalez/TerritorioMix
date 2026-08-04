@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
-import { CONFIG } from './config.ts';
+import { CONFIG } from './config';
 import {
   UserWithPassword,
   User,
@@ -10,7 +10,7 @@ import {
   StatsSummary,
   BackupData,
   TipoEdificacion,
-} from '../src/types.ts';
+} from '../src/types';
 
 interface DatabaseSchema {
   version: string;

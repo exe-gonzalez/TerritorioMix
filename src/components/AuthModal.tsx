@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User } from '../types.ts';
+import { User } from '../types';
 import { Mail, Lock, LogIn, KeyRound, ShieldAlert } from 'lucide-react';
-import { APP_VERSION } from '../version.ts';
+import { APP_VERSION } from '../version';
 
 interface AuthModalProps {
   onLoginSuccess: (token: string, user: User) => void;

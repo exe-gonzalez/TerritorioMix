@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '../db.ts';
-import { CONFIG } from '../config.ts';
-import { sendPasswordResetEmail } from '../email.ts';
-import { authenticateJWT, AuthenticatedRequest } from '../authMiddleware.ts';
+import { db } from '../db';
+import { CONFIG } from '../config';
+import { sendPasswordResetEmail } from '../email';
+import { authenticateJWT, AuthenticatedRequest } from '../authMiddleware';
 
 const router = Router();
 
@@ -38,7 +38,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     });
 
     const token = jwt.sign({ userId: user.id }, CONFIG.jwtSecret, {
-      expiresIn: CONFIG.jwtExpiresIn,
+      expiresIn: '24h',
     });
 
     res.status(201).json({
@@ -89,7 +89,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const { passwordHash, resetToken, resetTokenExpiry, needsPasswordSetup, ...user } = userWithPass;
 
     const token = jwt.sign({ userId: user.id }, CONFIG.jwtSecret, {
-      expiresIn: CONFIG.jwtExpiresIn,
+      expiresIn: '24h',
     });
 
     res.json({

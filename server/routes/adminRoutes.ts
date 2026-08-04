@@ -1,8 +1,8 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { db } from '../db.ts';
-import { authenticateJWT, AuthenticatedRequest, requireAdmin } from '../authMiddleware.ts';
-import { Role } from '../../src/types.ts';
+import { db } from '../db';
+import { authenticateJWT, AuthenticatedRequest, requireAdmin } from '../authMiddleware';
+import { Role } from '../../src/types';
 
 const router = Router();
 
