@@ -33,9 +33,13 @@ class Database {
   }
 
   private init() {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch {
+      this.filePath = '/tmp/territorio_mix_db.json';
     }
 
     if (fs.existsSync(this.filePath)) {
@@ -69,13 +73,20 @@ class Database {
 
   private save() {
     try {
-      const dir = path.dirname(this.filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      let targetPath = this.filePath;
+      let dir = path.dirname(targetPath);
+      try {
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+      } catch {
+        targetPath = '/tmp/territorio_mix_db.json';
+        this.filePath = targetPath;
+        dir = '/tmp';
       }
-      const tmpPath = `${this.filePath}.tmp`;
+      const tmpPath = `${targetPath}.tmp`;
       fs.writeFileSync(tmpPath, JSON.stringify(this.data, null, 2), 'utf-8');
-      fs.renameSync(tmpPath, this.filePath);
+      fs.renameSync(tmpPath, targetPath);
     } catch (error) {
       console.error('Failed to save DB:', error);
     }
