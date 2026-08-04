@@ -5,22 +5,36 @@ import adminRoutes from '../server/routes/adminRoutes';
 
 const app = express();
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.disable('x-powered-by');
 
 // CORS middleware
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (_req.method === 'OPTIONS') {
+
+  if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
   next();
 });
 
-// Handle routes with both /api prefix and without /api prefix for Vercel Serverless Function rewrites
+// Body parser middleware that respects pre-parsed body from serverless environment
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return next();
+  }
+  express.json({ limit: '10mb' })(req, res, (err) => {
+    if (err) {
+      express.urlencoded({ extended: true })(req, res, next);
+    } else {
+      express.urlencoded({ extended: true })(req, res, next);
+    }
+  });
+});
+
+// Support all possible mount paths for Vercel Serverless Function rewrites
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
 
@@ -30,8 +44,13 @@ app.use('/records', recordsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/admin', adminRoutes);
 
-app.get(['/api/health', '/health'], (_req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+app.get(['/api/health', '/health', '/api'], (_req, res) => {
+  res.json({ status: 'ok', service: 'TerritorioMix API', time: new Date().toISOString() });
+});
+
+// Fallback 404 handler for unknown API endpoints
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Ruta API no encontrada.' });
 });
 
 // Global error handling middleware for Vercel Serverless Function

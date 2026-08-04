@@ -33,6 +33,10 @@ class Database {
   }
 
   private init() {
+    if (process.env.VERCEL || process.env.VERCEL_ENV || process.env.NOW_BUILDER) {
+      this.filePath = '/tmp/territorio_mix_db.json';
+    }
+
     try {
       const dir = path.dirname(this.filePath);
       if (!fs.existsSync(dir)) {
@@ -46,11 +50,16 @@ class Database {
       try {
         const raw = fs.readFileSync(this.filePath, 'utf-8');
         const parsed = JSON.parse(raw);
-        this.data = {
-          version: parsed.version || '1.0.0',
-          users: Array.isArray(parsed.users) ? parsed.users : [],
-          records: Array.isArray(parsed.records) ? parsed.records : [],
-        };
+        if (parsed && typeof parsed === 'object') {
+          this.data = {
+            version: parsed.version || '1.0.0',
+            users: Array.isArray(parsed.users) ? parsed.users : [],
+            records: Array.isArray(parsed.records) ? parsed.records : [],
+          };
+        } else {
+          this.seedInitialData();
+          return;
+        }
       } catch (err) {
         console.error('Error reading DB file, re-initializing seed data:', err);
         this.seedInitialData();
@@ -64,8 +73,8 @@ class Database {
     // Ensure admin user exists safely
     const adminUser = this.data.users.find(
       (u) =>
-        (u.name && u.name.toLowerCase() === 'administrador') ||
-        (u.email && u.email.toLowerCase() === 'gonzalez.exe@mendoza.edu.ar')
+        (u.name && typeof u.name === 'string' && u.name.toLowerCase() === 'administrador') ||
+        (u.email && typeof u.email === 'string' && u.email.toLowerCase() === 'gonzalez.exe@mendoza.edu.ar')
     );
 
     if (!adminUser) {
@@ -76,17 +85,29 @@ class Database {
   private save() {
     try {
       let targetPath = this.filePath;
-      let dir = path.dirname(targetPath);
-      try {
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-      } catch {
+      if (process.env.VERCEL || process.env.VERCEL_ENV || process.env.NOW_BUILDER) {
         targetPath = '/tmp/territorio_mix_db.json';
         this.filePath = targetPath;
-        dir = '/tmp';
       }
-      fs.writeFileSync(targetPath, JSON.stringify(this.data, null, 2), 'utf-8');
+
+      const dir = path.dirname(targetPath);
+      if (!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch {
+          targetPath = '/tmp/territorio_mix_db.json';
+          this.filePath = targetPath;
+        }
+      }
+
+      try {
+        fs.writeFileSync(targetPath, JSON.stringify(this.data, null, 2), 'utf-8');
+      } catch (writeErr) {
+        // Fallback to /tmp if write failed (e.g. read-only filesystem)
+        targetPath = '/tmp/territorio_mix_db.json';
+        this.filePath = targetPath;
+        fs.writeFileSync(targetPath, JSON.stringify(this.data, null, 2), 'utf-8');
+      }
     } catch (error) {
       console.error('Failed to save DB:', error);
     }

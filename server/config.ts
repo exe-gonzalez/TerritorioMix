@@ -3,15 +3,24 @@ import path from 'path';
 
 dotenv.config();
 
-const isVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.NOW_BUILDER);
-const defaultDbPath = isVercel ? '/tmp/territorio_mix_db.json' : './data/territorio_mix_db.json';
+const isVercel = Boolean(
+  process.env.VERCEL ||
+  process.env.VERCEL_ENV ||
+  process.env.NOW_BUILDER ||
+  process.env.AWS_SERVERLESS ||
+  process.env.LAMBDA_TASK_ROOT
+);
 
 export const CONFIG = {
   port: 3000,
   jwtSecret: process.env.JWT_SECRET || 'territorio_mix_jwt_secret_key_2026_dev_secure',
   jwtExpiresIn: '24h',
-  dbFilePath: process.env.DB_FILE_PATH ? path.resolve(process.env.DB_FILE_PATH) : defaultDbPath,
-  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  dbFilePath: isVercel
+    ? '/tmp/territorio_mix_db.json'
+    : process.env.DB_FILE_PATH
+    ? path.resolve(process.env.DB_FILE_PATH)
+    : path.resolve('./data/territorio_mix_db.json'),
+  appUrl: process.env.APP_URL || 'https://territorio-mix.vercel.app',
   seedAdmin: {
     email: process.env.ADMIN_EMAIL || '',
     password: process.env.ADMIN_PASSWORD || '',
