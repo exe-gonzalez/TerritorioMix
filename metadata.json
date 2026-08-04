@@ -1,0 +1,6 @@
+{
+  "name": "TerritorioMix",
+  "description": "Sistema integral de relevamiento territorial con autenticación, control de roles (Admin/User), reportes geográficos, gráficos, filtros avanzados, exportación a PNG/PDF/Excel y copias de seguridad de base de datos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
