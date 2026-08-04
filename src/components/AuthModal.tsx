@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../types.ts';
 import { Mail, Lock, LogIn, KeyRound, ShieldAlert } from 'lucide-react';
+import { APP_VERSION } from '../version.ts';
 
 interface AuthModalProps {
   onLoginSuccess: (token: string, user: User) => void;
@@ -197,6 +198,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               </>
             )}
           </button>
+
+          <div className="pt-2 text-center">
+            <span className="inline-block px-2.5 py-1 text-[11px] font-mono font-medium text-slate-500 bg-slate-100 rounded-full border border-slate-200">
+              Versión: {APP_VERSION}
+            </span>
+          </div>
         </form>
       </div>
     </div>
