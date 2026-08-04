@@ -20,19 +20,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parser middleware that respects pre-parsed body from serverless environment
-app.use((req, res, next) => {
-  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
-    return next();
-  }
-  express.json({ limit: '10mb' })(req, res, (err) => {
-    if (err) {
-      express.urlencoded({ extended: true })(req, res, next);
-    } else {
-      express.urlencoded({ extended: true })(req, res, next);
+// Middleware to safely handle body if passed as string by serverless environments
+app.use((req, _res, next) => {
+  if (typeof req.body === 'string' && req.body.trim().length > 0) {
+    try {
+      req.body = JSON.parse(req.body);
+    } catch {
+      // Ignore parse error
     }
-  });
+  }
+  next();
 });
+
+// Standard express body parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Support all possible mount paths for Vercel Serverless Function rewrites
 app.use('/api/auth', authRoutes);

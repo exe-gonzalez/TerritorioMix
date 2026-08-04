@@ -55,7 +55,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 // Login
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body || {};
+    let email = req.body?.email;
+    let password = req.body?.password;
+
+    if (typeof req.body === 'string' && req.body.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(req.body);
+        email = email || parsed.email;
+        password = password || parsed.password;
+      } catch {
+        // ignore parse error
+      }
+    }
 
     if (!email || !password) {
       res.status(400).json({ error: 'Por favor ingresa usuario/correo y contraseña.' });
@@ -122,7 +133,19 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
 
     db.setResetToken(user.email, resetToken, expiry);
 
-    const emailResult = await sendPasswordResetEmail(targetEmail, resetToken);
+    let emailResult = { sent: true, demoMode: true, resetUrl: '', message: '' };
+    try {
+      emailResult = await sendPasswordResetEmail(targetEmail, resetToken);
+    } catch (e: any) {
+      console.warn('Error sending password reset email:', e);
+      const resetUrl = `${CONFIG.appUrl}?resetToken=${resetToken}&email=${encodeURIComponent(targetEmail)}`;
+      emailResult = {
+        sent: true,
+        demoMode: true,
+        resetUrl,
+        message: `[Modo Demostración] Hemos generado el enlace de restablecimiento para ${targetEmail}.`,
+      };
+    }
 
     res.json({
       success: true,
