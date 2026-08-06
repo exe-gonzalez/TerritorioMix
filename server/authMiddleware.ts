@@ -8,6 +8,11 @@ export interface AuthenticatedRequest extends Request {
   user?: User;
 }
 
+const verifyToken = (token: string, secret: string): any => {
+  const fn = (jwt as any)?.default?.verify || jwt.verify;
+  return fn(token, secret);
+};
+
 export function authenticateJWT(
   req: AuthenticatedRequest,
   res: Response,
@@ -23,7 +28,7 @@ export function authenticateJWT(
   const token = authHeader.split(' ')[1];
 
   try {
-    const payload = jwt.verify(token, CONFIG.jwtSecret) as { userId: string };
+    const payload = verifyToken(token, CONFIG.jwtSecret) as { userId: string };
     const userWithPassword = db.getUserById(payload.userId);
 
     if (!userWithPassword || !userWithPassword.active) {

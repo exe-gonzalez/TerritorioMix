@@ -6,6 +6,11 @@ import { Role } from '../../src/types';
 
 const router = Router();
 
+const hashPassword = async (pwd: string, saltRounds = 10): Promise<string> => {
+  const fn = (bcrypt as any)?.default?.hash || bcrypt.hash;
+  return fn(pwd, saltRounds);
+};
+
 // Every route in adminRoutes requires JWT + Admin role
 router.use(authenticateJWT, requireAdmin);
 
@@ -47,7 +52,7 @@ router.post('/users', async (req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password, 10);
     const validRole: Role = role === 'admin' ? 'admin' : 'user';
 
     const newUser = db.createUser({

@@ -8,6 +8,22 @@ import { authenticateJWT, AuthenticatedRequest } from '../authMiddleware';
 
 const router = Router();
 
+// Safe CJS/ESM interop helpers
+const hashPassword = async (pwd: string, saltRounds = 10): Promise<string> => {
+  const fn = (bcrypt as any)?.default?.hash || bcrypt.hash;
+  return fn(pwd, saltRounds);
+};
+
+const comparePassword = async (pwd: string, hash: string): Promise<boolean> => {
+  const fn = (bcrypt as any)?.default?.compare || bcrypt.compare;
+  return fn(pwd, hash);
+};
+
+const signToken = (payload: any, secret: string, expiresIn = '24h'): string => {
+  const fn = (jwt as any)?.default?.sign || jwt.sign;
+  return fn(payload, secret, { expiresIn });
+};
+
 // Register new account
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -29,7 +45,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password, 10);
     const user = db.createUser({
       name,
       email,
@@ -37,9 +53,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       role: 'user', // default new registrations are user role
     });
 
-    const token = jwt.sign({ userId: user.id }, CONFIG.jwtSecret, {
-      expiresIn: '24h',
-    });
+    const token = signToken({ userId: user.id }, CONFIG.jwtSecret, '24h');
 
     res.status(201).json({
       message: 'Usuario registrado con éxito.',
@@ -85,12 +99,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         res.status(400).json({ error: 'La contraseña debe tener al menos 4 caracteres.' });
         return;
       }
-      const newHash = await bcrypt.hash(password, 10);
+      const newHash = await hashPassword(password, 10);
       db.resetUserPassword(userWithPass.id, newHash);
       userWithPass.passwordHash = newHash;
       userWithPass.needsPasswordSetup = false;
     } else {
-      const validPassword = await bcrypt.compare(password, userWithPass.passwordHash);
+      const validPassword = await comparePassword(password, userWithPass.passwordHash);
       if (!validPassword) {
         res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
         return;
@@ -99,9 +113,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     const { passwordHash, resetToken, resetTokenExpiry, needsPasswordSetup, ...user } = userWithPass;
 
-    const token = jwt.sign({ userId: user.id }, CONFIG.jwtSecret, {
-      expiresIn: '24h',
-    });
+    const token = signToken({ userId: user.id }, CONFIG.jwtSecret, '24h');
 
     res.json({
       token,
@@ -180,7 +192,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    const newPasswordHash = await hashPassword(newPassword, 10);
     db.resetUserPassword(user.id, newPasswordHash);
 
     res.json({
