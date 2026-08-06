@@ -1,14 +1,10 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { CONFIG } from './server/config';
 import authRoutes from './server/routes/authRoutes';
 import recordsRoutes from './server/routes/recordsRoutes';
 import adminRoutes from './server/routes/adminRoutes';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
